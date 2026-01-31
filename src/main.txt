@@ -1,0 +1,36 @@
+#include <stdbool.h>
+
+const int FRAME = 20000; // 50 Hz frame
+const int PWM_ZERO = 600; 
+const int PWM_NINETY = 1500; 
+const int PWM_ONE_EIGHTY = 2400; 
+const int PIN_SERVO = 9; 
+
+startFrame = 0; 
+
+pulseWidth = 0; 
+
+bool servoOn = false; 
+bool servoPinHigh = false; 
+
+
+void servoEnabled(){
+    servoOn = true;
+    servoPinHigh = true; 
+    digitalWrite(PIN_SERVO, LOW);
+
+    startFrame = micros();
+}
+
+void setAngle(int angleDeg){
+    angleDeg = clamp(angleDeg, 0 , 180);
+
+    pulseWidth = PWM_ZERO + (angleDeg * (PWM_ONE_EIGHTY - PWM_ZERO));
+
+}
+
+void servoDisable(){
+    servoOn = false; 
+    servoPinHigh = false; 
+    digitalWrite(PIN_SERVO, LOW);
+}
