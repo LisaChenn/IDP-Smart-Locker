@@ -1,4 +1,7 @@
+
+#include <Arduino.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 const int FRAME = 20000; // 50 Hz frame
 const int PWM_ZERO = 600; 
@@ -6,9 +9,10 @@ const int PWM_NINETY = 1500;
 const int PWM_ONE_EIGHTY = 2400; 
 const int PIN_SERVO = 9; 
 
-startFrame = 0; 
+int startFrame = 0; 
+int startPulse = 0; 
 
-pulseWidth = 0; 
+int pulseWidth = 0; 
 
 bool servoOn = false; 
 bool servoPinHigh = false; 
@@ -16,7 +20,7 @@ bool servoPinHigh = false;
 
 void servoEnabled(){
     servoOn = true;
-    servoPinHigh = true; 
+    servoPinHigh = false; 
     digitalWrite(PIN_SERVO, LOW);
 
     startFrame = micros();
@@ -25,7 +29,7 @@ void servoEnabled(){
 void setAngle(int angleDeg){
     angleDeg = clamp(angleDeg, 0 , 180);
 
-    pulseWidth = PWM_ZERO + (angleDeg * (PWM_ONE_EIGHTY - PWM_ZERO));
+    pulseWidth = PWM_ZERO + (angleDeg * (PWM_ONE_EIGHTY - PWM_ZERO))/180;
 
 }
 
@@ -33,4 +37,31 @@ void servoDisable(){
     servoOn = false; 
     servoPinHigh = false; 
     digitalWrite(PIN_SERVO, LOW);
+}
+
+void setup(){
+    pinMode(PIN_SERVO, OUTPUT);
+    digitalWrite(PIN_SERVO, LOW);
+
+    servoEnabled();
+    setAngle(90);
+}
+
+void loop(){
+    if(!servoEnabled) return 
+
+    now = micros();
+
+    if(!servoPinHigh && (now - startFrame)>=FRAME){
+        startFrame = now; 
+        digitalWrite(PIN_SERVO, HIGH);
+        startFrame = now; 
+        servoPinHigh = true; 
+        return; 
+    }
+    if (servoPinHigh && (now - startPulse) >= pulseWidth){
+        digitalWrite(PIN_SERVO, LOW);
+        servoPinHigh = false; 
+        return; 
+    }
 }
